@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
+from .validation import MIN_R
 
 
 def md(df: pd.DataFrame, floatfmt=".3f") -> str:
@@ -183,10 +184,44 @@ def write_summary(R: dict) -> None:
     # Validation
     a("## Validation (step 10)\n")
     if R.get("core") is not None and len(R["core"]):
-        a("Log total porosity vs core plug porosity (Norwegian core data, Zenodo 4419060):\n")
-        a(md(R["core"]))
-        a("\nPositive bias = log reads higher than core. Shifts flagged `shift_at_edge` hit the search limit "
-          "and should not be trusted.\n")
+        cs = R["core"].set_index("well")
+        byv = R["core_by_vsh"]
+        allv = byv[byv.well == "ALL"].set_index("vsh_class")
+        clean = allv.iloc[0]
+        a(f"Log porosity vs {int(cs.n_compared.sum())} helium plug porosities inside the Hugin (RealPore "
+          "core data, Zenodo 4419060; plugs without a helium value use the file's 'best of available'). "
+          "Each well's core is tied to the log by sliding density porosity over +-5 m; positive bias means "
+          "the log reads higher than core.\n")
+        t = R["core"][["well", "n_compared", "shift_m", "shift_r", "shift_reliable", "mean_core_phi",
+                       "bias_phit", "rmse_phit", "bias_phie", "rmse_phie"]]
+        a(md(t))
+        a("\nSplit by the log's own Vsh at each plug (all wells pooled):\n")
+        a(md(allv.reset_index().drop(columns="well")))
+        best_phit = [w for w in cs.index if abs(cs.loc[w, "bias_phit"]) <= 0.025]
+        best_phie = [w for w in cs.index if abs(cs.loc[w, "bias_phie"]) <= 0.025]
+        a("\n**What the core says:**\n")
+        a(f"- In clean sand ({int(clean.n)} plugs) the logs are close: PHIT reads {clean.bias_phit:+.3f} and "
+          f"PHIE {clean.bias_phie:+.3f} against core on average.\n"
+          f"- PHIT agrees best in {', '.join(best_phit) or 'no well'}; PHIE agrees best in "
+          f"{', '.join(best_phie) or 'no well'}. Core porosity sits between the two curves, as expected for "
+          "helium porosity on cleaned, dried plugs.\n"
+          "- As Vsh rises, PHIT reads increasingly high (shale-bound water raises the neutron) and PHIE reads "
+          "low (the shale correction overshoots). Where the log calls the rock shaly, the plugs are still "
+          "sand: plugs tend to be cut from the most competent sand, and thin sand beds sit below log resolution.\n")
+        if "25/5-3" in cs.index:
+            r53 = byv[(byv.well == "25/5-3")].set_index("vsh_class")
+            a(f"- 25/5-3 is the clearest case of over-correction: plugs average {r53.iloc[0].mean_core_phi:.2f} in "
+              f"sand the log calls clean, PHIT matches them ({cs.loc['25/5-3', 'bias_phit']:+.3f}) and PHIE is "
+              f"{cs.loc['25/5-3', 'bias_phie']:+.3f} low. The GR there likely carries some feldspar or mica "
+              "signal rather than clay, so GR-derived Vsh is too high. This makes the 25/5-3 pay estimate "
+              "conservative (lower PHIE gives higher Simandoux Sw); no parameter was re-tuned to the core, so "
+              "this stays an independent check.\n")
+        rel = cs[cs.shift_reliable]
+        a(f"- Core-to-log depth shifts are {cs.shift_m.min():+.1f} to {cs.shift_m.max():+.1f} m (positive: log "
+          f"deeper than core), within normal driller-logger differences; {len(rel)} of {len(cs)} are supported by "
+          f"a correlation of at least {MIN_R} and are inside the search window.\n")
+        a("See `figures/core_vs_log.png` and `figures/core_depth_tracks.png`; plug-by-plug values are in "
+          "`10_core_vs_log_matched.csv`.\n")
     else:
         a("**Core comparison not yet run.** The core plug file (Zenodo 4419060) was not available when "
           "this summary was generated. Place it with `python scripts/fetch_data.py --core` (or "

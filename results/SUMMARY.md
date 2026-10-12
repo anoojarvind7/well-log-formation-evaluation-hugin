@@ -141,7 +141,34 @@ Only strong correlations can show an offset; the NPHI-GR pair is the meaningful 
 
 ## Validation (step 10)
 
-**Core comparison not yet run.** The core plug file (Zenodo 4419060) was not available when this summary was generated. Place it with `python scripts/fetch_data.py --core` (or `--core-file PATH`) and rerun `make all`; the comparison, depth-shift search and `figures/core_vs_log.png` are produced automatically.
+Log porosity vs 405 helium plug porosities inside the Hugin (RealPore core data, Zenodo 4419060; plugs without a helium value use the file's 'best of available'). Each well's core is tied to the log by sliding density porosity over +-5 m; positive bias means the log reads higher than core.
+
+| well    |   n_compared |   shift_m |   shift_r | shift_reliable   |   mean_core_phi |   bias_phit |   rmse_phit |   bias_phie |   rmse_phie |
+|:--------|-------------:|----------:|----------:|:-----------------|----------------:|------------:|------------:|------------:|------------:|
+| 15/9-13 |          130 |     1.380 |     0.680 | True             |           0.164 |       0.074 |       0.104 |       0.013 |       0.060 |
+| 25/2-14 |           79 |     0.930 |     0.740 | True             |           0.158 |       0.020 |       0.043 |      -0.009 |       0.045 |
+| 25/5-3  |          120 |     1.990 |     0.680 | True             |           0.265 |       0.003 |       0.039 |      -0.053 |       0.072 |
+| 26/4-1  |           76 |     3.660 |     0.840 | True             |           0.157 |       0.059 |       0.074 |      -0.002 |       0.059 |
+
+Split by the log's own Vsh at each plug (all wells pooled):
+
+| vsh_class          |   n |   mean_core_phi |   bias_phit |   bias_phie |
+|:-------------------|----:|----------------:|------------:|------------:|
+| clean (Vsh < 0.25) | 300 |           0.203 |       0.024 |      -0.008 |
+| shaly (0.25-0.40)  |  49 |           0.181 |       0.056 |      -0.031 |
+| shale (Vsh > 0.40) |  56 |           0.140 |       0.108 |      -0.029 |
+
+**What the core says:**
+
+- In clean sand (300 plugs) the logs are close: PHIT reads +0.024 and PHIE -0.008 against core on average.
+- PHIT agrees best in 25/2-14, 25/5-3; PHIE agrees best in 15/9-13, 25/2-14, 26/4-1. Core porosity sits between the two curves, as expected for helium porosity on cleaned, dried plugs.
+- As Vsh rises, PHIT reads increasingly high (shale-bound water raises the neutron) and PHIE reads low (the shale correction overshoots). Where the log calls the rock shaly, the plugs are still sand: plugs tend to be cut from the most competent sand, and thin sand beds sit below log resolution.
+
+- 25/5-3 is the clearest case of over-correction: plugs average 0.27 in sand the log calls clean, PHIT matches them (+0.003) and PHIE is -0.053 low. The GR there likely carries some feldspar or mica signal rather than clay, so GR-derived Vsh is too high. This makes the 25/5-3 pay estimate conservative (lower PHIE gives higher Simandoux Sw); no parameter was re-tuned to the core, so this stays an independent check.
+
+- Core-to-log depth shifts are +0.9 to +3.7 m (positive: log deeper than core), within normal driller-logger differences; 4 of 4 are supported by a correlation of at least 0.5 and are inside the search window.
+
+See `figures/core_vs_log.png` and `figures/core_depth_tracks.png`; plug-by-plug values are in `10_core_vs_log_matched.csv`.
 
 - 15/9-13: average PHIE in net 0.195 vs 0.18-0.24 reported for Volve reservoir (Hugin) log porosity, 'large proportion between' (Otoo & Hodgetts (2021), Geosci. Model Dev. 14, 2075-2095, doi:10.5194/gmd-14-2075-2021). Inside the published range. This is a regional comparison: 15/9-13 is in the Sleipner/Volve area, not a Volve well.
 
@@ -151,30 +178,30 @@ Only strong correlations can show an offset; the NPHI-GR pair is the meaningful 
 
 22 FORCE wells have a Hugin Fm label. Curve completeness across the Hugin (%):
 
-| well       |   hugin_md_m |   GR_pct |   RHOB_pct |   NPHI_pct |   RDEP_pct |   PEF_pct |   BS_pct | core_plugs_in_hugin   | selected   |
-|:-----------|-------------:|---------:|-----------:|-----------:|-----------:|----------:|---------:|:----------------------|:-----------|
-| 15/9-13    |         26.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |      0.0 | core file absent      | True       |
-| 15/9-14    |         27.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |      0.0 | core file absent      | False      |
-| 16/10-1    |         32.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 16/10-2    |         69.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 16/10-3    |         10.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 16/2-16    |          1.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/10-9    |         42.7 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/2-13 T4 |         66.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/2-14    |         20.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | True       |
-| 25/2-7     |         11.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/3-1     |         12.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/4-5     |         37.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 | core file absent      | False      |
-| 25/5-1     |         11.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |      0.0 | core file absent      | False      |
-| 25/5-3     |         46.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | True       |
-| 25/5-4     |         24.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/6-1     |         12.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 | core file absent      | False      |
-| 25/6-2     |         20.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 | core file absent      | False      |
-| 25/7-2     |        206.0 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 | core file absent      | False      |
-| 25/8-5 S   |         41.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/8-7     |         10.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 25/9-1     |         16.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | False      |
-| 26/4-1     |         66.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 | core file absent      | True       |
+| well       |   hugin_md_m |   GR_pct |   RHOB_pct |   NPHI_pct |   RDEP_pct |   PEF_pct |   BS_pct |   core_plugs_in_hugin | selected   |
+|:-----------|-------------:|---------:|-----------:|-----------:|-----------:|----------:|---------:|----------------------:|:-----------|
+| 15/9-13    |         26.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |      0.0 |                   152 | True       |
+| 15/9-14    |         27.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |      0.0 |                     0 | False      |
+| 16/10-1    |         32.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                     0 | False      |
+| 16/10-2    |         69.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                     0 | False      |
+| 16/10-3    |         10.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                     0 | False      |
+| 16/2-16    |          1.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                    28 | False      |
+| 25/10-9    |         42.7 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                     0 | False      |
+| 25/2-13 T4 |         66.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                     0 | False      |
+| 25/2-14    |         20.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                   107 | True       |
+| 25/2-7     |         11.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                    28 | False      |
+| 25/3-1     |         12.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                    37 | False      |
+| 25/4-5     |         37.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 |                     0 | False      |
+| 25/5-1     |         11.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |      0.0 |                    35 | False      |
+| 25/5-3     |         46.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                   120 | True       |
+| 25/5-4     |         24.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                     0 | False      |
+| 25/6-1     |         12.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 |                    40 | False      |
+| 25/6-2     |         20.8 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 |                     0 | False      |
+| 25/7-2     |        206.0 |    100.0 |      100.0 |      100.0 |      100.0 |       0.0 |    100.0 |                   218 | False      |
+| 25/8-5 S   |         41.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                     0 | False      |
+| 25/8-7     |         10.8 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                    38 | False      |
+| 25/9-1     |         16.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                    92 | False      |
+| 26/4-1     |         66.9 |    100.0 |      100.0 |      100.0 |      100.0 |     100.0 |    100.0 |                    76 | True       |
 
 Selected: the four strongest core candidates from the plan's first look (full GR/density/neutron/resistivity/PEF across the Hugin), giving two wells with pay and two water-bearing wells for Rw. 25/7-2 (thickest Hugin) was left out: no PEF and ~4.4 km deep. 15/9-14 is used only as the Rw offset for 15/9-13.
 

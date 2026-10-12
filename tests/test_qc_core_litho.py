@@ -20,13 +20,26 @@ def test_runs():
 def test_norm_well():
     assert core.norm_well(" NO 15/9-13 ") == "15/9-13"
     assert core.norm_well("25/2-13  t4") == "25/2-13 T4"
+    # RealPore spellings
+    assert core.norm_well("15_9-13") == "15/9-13"
+    assert core.norm_well("1_2 -1 ") == "1/2-1"
+    assert core.norm_well("1_3-7_T3") == "1/3-7 T3"
 
 
 def test_detect_columns():
     df = pd.DataFrame(columns=["Well name", "Depth (m)", "Porosity (%)", "Permeability Kh (mD)", "Lithology"])
     c = core.detect_columns(df)
     assert c == {"well": "Well name", "depth": "Depth (m)", "porosity": "Porosity (%)",
-                 "permeability": "Permeability Kh (mD)", "lithology": "Lithology"}
+                 "permeability": "Permeability Kh (mD)", "lithology": "Lithology", "porosity_fallback": None}
+
+
+def test_detect_columns_prefers_realpore_names():
+    df = pd.DataFrame(columns=["seq numb", "Well Name", "Measured Depth", "Permeability horizontal ka  (air) ",
+                               "Porosity. Horizontal PLUG", "Porosity helium", "porosity best of available",
+                               "main lithology"])
+    c = core.detect_columns(df)
+    assert c["porosity"] == "Porosity helium" and c["porosity_fallback"] == "porosity best of available"
+    assert c["depth"] == "Measured Depth" and c["well"] == "Well Name"
 
 
 def test_classify():

@@ -258,16 +258,38 @@ def mc_plot(draws: pd.DataFrame):
 def core_plot(matched: pd.DataFrame):
     wells = list(dict.fromkeys(matched.well))
     colors = [BLUE, ORANGE, AQUA, YELLOW]
-    fig, ax = plt.subplots(figsize=(4.8, 4.6))
-    for wi, well in enumerate(wells):
-        m = matched[matched.well == well]
-        ax.scatter(m.phi_core, m.phit_log, s=12, color=colors[wi % 4], label=well, lw=0)
-    ax.plot([0, 0.4], [0, 0.4], color=INK, lw=1)
-    ax.fill_between([0, 0.4], [-0.03, 0.37], [0.03, 0.43], color=GRID, alpha=0.6, lw=0, label="+-0.03")
-    ax.set_xlim(0, 0.4)
-    ax.set_ylim(0, 0.4)
-    ax.set_xlabel("Core plug porosity (v/v)")
-    ax.set_ylabel("Log PHIT (v/v), depth-shifted")
-    ax.legend(fontsize=7)
-    ax.set_title("Log vs core porosity, Hugin Fm")
+    fig, axs = plt.subplots(1, 2, figsize=(9.2, 4.6), sharey=True)
+    for ax, (k, lab) in zip(axs, [("phit_log", "Log PHIT"), ("phie_log", "Log PHIE")]):
+        for wi, well in enumerate(wells):
+            m = matched[matched.well == well]
+            ax.scatter(m.phi_core, m[k], s=12, color=colors[wi % 4], label=well, lw=0)
+        ax.plot([0, 0.4], [0, 0.4], color=INK, lw=1)
+        ax.fill_between([0, 0.4], [-0.03, 0.37], [0.03, 0.43], color=GRID, alpha=0.6, lw=0, label="+-0.03",
+                        zorder=0)
+        ax.set_xlim(0, 0.4)
+        ax.set_ylim(0, 0.4)
+        ax.set_xlabel("Core plug porosity, helium (v/v)")
+        ax.set_title(f"{lab} vs core")
+    axs[0].set_ylabel("Log porosity at depth-shifted plug (v/v)")
+    axs[0].legend(fontsize=7)
+    fig.suptitle("Hugin Fm: log vs core porosity (core data: RealPore, Zenodo 4419060)", fontsize=10)
     return _save(fig, "core_vs_log.png")
+
+
+def core_depth_tracks(matched: pd.DataFrame, curves: dict):
+    wells = list(dict.fromkeys(matched.well))
+    fig, axs = plt.subplots(1, len(wells), figsize=(3.2 * len(wells), 7.5))
+    for ax, well in zip(np.atleast_1d(axs), wells):
+        cv, m = curves[well], matched[matched.well == well]
+        ax.fill_betweenx(cv.DEPTH_MD, 0, cv.VSH * 0.4, color="#8a8984", alpha=0.35, lw=0, label="Vsh x 0.4")
+        ax.plot(cv.PHIT, cv.DEPTH_MD, color=BLUE, label="PHIT")
+        ax.plot(cv.PHIE, cv.DEPTH_MD, color=ORANGE, label="PHIE")
+        ax.scatter(m.phi_core, m.log_depth_m, s=10, color=INK, zorder=3, label="Core (shifted)")
+        ax.set_xlim(0, 0.4)
+        ax.invert_yaxis()
+        ax.set_title(well, fontsize=9, loc="left")
+        ax.set_xlabel("Porosity (v/v)")
+    np.atleast_1d(axs)[0].set_ylabel("Log MD (m)")
+    np.atleast_1d(axs)[0].legend(fontsize=7, loc="lower right")
+    fig.suptitle("Core plugs on the log porosity curves, Hugin Fm", fontsize=10)
+    return _save(fig, "core_depth_tracks.png")
