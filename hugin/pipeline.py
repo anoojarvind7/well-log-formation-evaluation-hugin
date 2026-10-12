@@ -148,6 +148,10 @@ def main(argv=None):
         cstats.to_csv(C.RESULTS / "10_core_vs_log_stats.csv", index=False)
         if len(matched):
             plots.core_plot(matched)
+            plots.core_depth_tracks(matched, curves)
+            byv = validation.bias_by_vsh(matched)
+            byv.to_csv(C.RESULTS / "10_core_bias_by_vsh.csv", index=False)
+            R["core_by_vsh"] = byv
         R["core"] = cstats
     else:
         R["core"] = None

@@ -24,10 +24,12 @@ Base case (full write-up with per-well notes, uncertainty, QC and validation: **
   disagreements (cemented stringers, shaly sand vs shale) are explained in the summary.
 - Net pay moves most with the **Sw cutoff** and, in the Monte Carlo, with **Rw** and the **GR shale
   baseline**.
+- **Core plugs (405 helium porosities in the four wells):** in clean sand the logs agree with core
+  to within 0.025 on average (PHIT +0.024, PHIE -0.008). Core sits between PHIT and PHIE; PHIT reads
+  high and PHIE low as Vsh rises, and in 25/5-3 the GR-based shale correction overshoots, which
+  makes that well's pay estimate conservative. Nothing was re-tuned to the core.
 - 15/9-13 average porosity (0.195) sits inside the 0.18-0.24 log porosity range published for the
   nearby Volve Hugin reservoir (Otoo & Hodgetts 2021).
-- **Core plug validation is wired in but not yet run**: the core file (Zenodo 4419060) still has
-  to be placed in `data/raw/core/` (see below).
 
 ![Correlation panel](results/figures/correlation_panel.png)
 
@@ -36,12 +38,13 @@ Base case (full write-up with per-well notes, uncertainty, QC and validation: **
 ```bash
 conda env create -f environment.yml && conda activate hugin-petro   # or: pip install -r requirements.txt
 make data      # FORCE 2020 logs, ~170 MB, md5-verified into data/raw/ (never committed)
-make core      # optional: core plugs from Zenodo (or: python scripts/fetch_data.py --core-file PATH)
+make core      # core plugs from Zenodo (or: python scripts/fetch_data.py --core-file PATH, md5-checked)
 make run       # steps 1-11 -> results/ and results/SUMMARY.md
 make test
 ```
 
-The pipeline is deterministic (fixed Monte Carlo seed) and takes about a minute.
+The pipeline is deterministic (fixed Monte Carlo seed) and takes about a minute; the first run with
+the core file adds ~2 minutes to parse the 76 MB spreadsheet (cached afterwards).
 
 ## Workflow
 

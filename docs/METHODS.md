@@ -103,10 +103,19 @@ the cutoffs. Those are shown separately (Archie vs Simandoux curves, regional-Rw
 
 ## 10. Validation
 
-- **Core plugs** (Zenodo 4419060): matched by well name; plug porosity compared with log total
-  porosity after a core-to-log depth shift found by maximising correlation within +-5 m. The shift is
-  reported, and one at the edge of the search window is flagged rather than used. Not yet run in
-  `results/`: the core file was not available when they were generated.
+- **Core plugs** (RealPore, Zenodo 4419060): well names are normalised (the file writes `15_9-13`
+  for 15/9-13), helium porosity is used with the file's "best of available" as fallback, and percent
+  is converted to fraction. Each well's core is depth-tied to the log by sliding density porosity
+  over +-5 m and keeping the best correlation; density is used for the tie because it does not
+  depend on the neutron unit assumption. Plug porosity is then compared with both PHIT and PHIE, and
+  the difference is split by the log's Vsh at each plug.
+
+  Result: in clean sand the logs match core to within 0.025 on average. With rising Vsh, PHIT reads
+  high and PHIE low, so core sits between them. In 25/5-3, GR-derived Vsh appears too high (plugs
+  are as porous where the GR calls the sand shaly), so PHIE under-reads and that well's pay is
+  conservative. The core was deliberately **not** used to re-tune any parameter, so it remains an
+  independent test. A core-calibrated variant (for example, a lower shale-neutron point or a
+  density-only porosity in clean sand) would be the natural next step.
 - **Published values**: 15/9-13 average PHIE is compared with the 0.18-0.24 log porosity range
   reported for the Volve reservoir by Otoo & Hodgetts (2021). This is a regional comparison only.
 - **FORCE lithology**: the step 4 confusion table.
