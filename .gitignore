@@ -1,0 +1,7 @@
+# Raw and intermediate data are never committed (see scripts/fetch_data.py)
+data/
+*.pyc
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
