@@ -23,6 +23,7 @@ import argparse
 import hashlib
 import shutil
 import sys
+import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -48,6 +49,8 @@ FORCE_FILES = {
     "las_files_Lithostrat_data/26_4-1.las": "6c2e45e6cb35ff66ea5b1f153ed2958e",
 }
 
+RETRIES = 4
+
 CORE_NAME = "RealPore Por Perm Lithology data 1240 Wells Norway public.xlsx"
 CORE_URL = "https://zenodo.org/records/4419060/files/" + urllib.parse.quote(CORE_NAME) + "?download=1"
 CORE_MD5 = "ff2167f56a63b80cb87e20748cbcfc50"
@@ -67,15 +70,25 @@ def fetch(url: str, dest: Path, expected_md5: str) -> None:
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(dest.suffix + ".part")
-    print(f"download     {dest.relative_to(RAW)}")
-    with urllib.request.urlopen(url, timeout=300) as r, open(tmp, "wb") as f:
-        shutil.copyfileobj(r, f)
-    got = md5(tmp)
-    if got != expected_md5:
-        tmp.unlink()
-        raise SystemExit(f"md5 mismatch for {dest.name}: got {got}, expected {expected_md5}")
-    tmp.replace(dest)
-    print(f"ok (md5)     {dest.relative_to(RAW)}")
+    # Large files are sometimes cut short in transit (seen through HTTP proxies),
+    # which shows up as an md5 mismatch; retry a few times before giving up.
+    for attempt in range(1, RETRIES + 1):
+        print(f"download     {dest.relative_to(RAW)}" + (f" (attempt {attempt})" if attempt > 1 else ""))
+        try:
+            with urllib.request.urlopen(url, timeout=300) as r, open(tmp, "wb") as f:
+                shutil.copyfileobj(r, f)
+        except OSError as e:
+            got = f"error: {e}"
+        else:
+            got = md5(tmp)
+            if got == expected_md5:
+                tmp.replace(dest)
+                print(f"ok (md5)     {dest.relative_to(RAW)}")
+                return
+        tmp.unlink(missing_ok=True)
+        if attempt < RETRIES:
+            time.sleep(2 ** attempt)
+    raise SystemExit(f"md5 mismatch for {dest.name} after {RETRIES} attempts: got {got}, expected {expected_md5}")
 
 
 def main(argv: list[str] | None = None) -> int:
