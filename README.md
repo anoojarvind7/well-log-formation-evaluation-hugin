@@ -20,18 +20,34 @@ Base case (full write-up with per-well notes, uncertainty, QC and validation: **
 | 25/2-14 | 20.8 | 0 / 0 / 0 | 0.156 | - | water-bearing |
 | 26/4-1 | 66.9 | 0 / 0.3 / 0.5 | 0.195 | - | water-bearing (0.3 m flag is a thin shaly bed) |
 
+![Correlation panel](results/figures/correlation_panel.png)
+
+The four wells hung on top Hugin: net pay (red fill) sits in the two wells to the left, the two on
+the right are water-bearing.
+
 - Lithology from logs agrees with the FORCE hand picks on **78 %** of Hugin samples; the
   disagreements (cemented stringers, shaly sand vs shale) are explained in the summary.
 - Net pay moves most with the **Sw cutoff** and, in the Monte Carlo, with **Rw** and the **GR shale
   baseline**.
+
+  ![Monte Carlo exceedance curves](results/figures/monte_carlo.png)
+  ![Cutoff sensitivity](results/figures/cutoff_sweep.png)
 - **Core plugs (405 helium porosities in the four wells):** in clean sand the logs agree with core
   to within 0.025 on average (PHIT +0.024, PHIE -0.008). Core sits between PHIT and PHIE; PHIT reads
   high and PHIE low as Vsh rises, and in 25/5-3 the GR-based shale correction overshoots, which
   makes that well's pay estimate conservative. Nothing was re-tuned to the core.
+
+  ![Log vs core porosity](results/figures/core_vs_log.png)
 - 15/9-13 average porosity (0.195) sits inside the 0.18-0.24 log porosity range published for the
   nearby Volve Hugin reservoir (Otoo & Hodgetts 2021).
 
-![Correlation panel](results/figures/correlation_panel.png)
+### What the interpretation looks like in one well
+
+25/5-3, the thickest pay: logs, the computed Vsh / PHIE / Sw, the net reservoir and pay flags, and
+this work's lithology beside the FORCE expert picks. Composites for all four wells, plus Pickett
+plots and density-neutron crossplots, are in [`results/figures/`](results/figures/).
+
+![25/5-3 composite log](results/figures/composite_25_5-3.png)
 
 ## Run it
 
